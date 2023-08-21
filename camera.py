@@ -39,6 +39,8 @@ class AccidentDetectionApp:
         self.font = cv2.FONT_HERSHEY_SIMPLEX
         self.model = AccidentDetectionModel(model_path, weights_path)
 
+        self.last_accident_time = 0
+
         self.vid = cv2.VideoCapture('Teste\Demo.gif')
         self.video_frame = ctk.CTkLabel(window, text='')
         self.video_frame.pack(padx=20, pady=20, side=ctk.LEFT)
@@ -88,6 +90,10 @@ class AccidentDetectionApp:
                 cv2.rectangle(frame, (0, 0), (280, 40), (0, 0, 0), -1)
                 cv2.putText(frame, pred + " " + str(prob), (20, 30), self.font, 1, (255, 255, 0), 2)
 
+                if prob > 90 and time.time() - self.last_accident_time > 10:  # Verifica probabilidade e intervalo de tempo
+                    self.acidente()  # Chama a função acidente
+                    self.last_accident_time = time.time()  # Atualiza o tempo da última chamada
+
             self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
             self.video_frame.configure(image=self.photo)
             self.video_frame.image = self.photo
@@ -97,6 +103,7 @@ class AccidentDetectionApp:
     def review_frames(self):
         self.review_window = ctk.CTkToplevel(self.window)
         self.review_window.title("Revisão de Frames")
+        self.review_window.attributes("-topmost", True)
 
         self.review_frame_index = 0
         self.review_frame_label = ctk.CTkLabel(self.review_window, text='')
@@ -135,6 +142,14 @@ class AccidentDetectionApp:
         self.help_window.title("Ajuda")
         self.help_label = ctk.CTkLabel(self.help_window, text='Ajuda Acionada')
         self.help_label.pack(padx=20, pady=20)
+
+    def acidente(self):
+        self.acidente_window = ctk.CTkToplevel(self.window)
+        self.acidente_window.geometry("300x150")
+        self.acidente_window.title("Acidente")
+        self.acidente_window.attributes("-topmost", True)
+        self.acidente_label= ctk.CTkLabel(self.acidente_window, text='POSSIVEL ACIDENTE, POR FAVOR VERIFICAR')
+        self.acidente_label.pack(padx=20, pady=20)
 
     def quit(self):
         self.vid.release()
